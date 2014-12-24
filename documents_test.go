@@ -64,3 +64,42 @@ func (_ DocumentsTests) DeletesADocumentWithStringId() {
 		`{"type":"saiyans", "id":"vegeta"}`,
 		"9daabeeb5c24def5aeee1fd94492770a3be432323a701a65a547ddd497f978c3")
 }
+
+func (_ DocumentsTests) BulkSendsWithNoDelete() {
+	upserts := Documents{
+		Doc(Person(123, "Leto")),
+		DocMeta(Person(22, "paul"), Person(22, "Paul")),
+	}
+	Expect(n().Documents.Bulk("atreides", upserts, nil)).To.Equal(200, nil)
+	assertLast(
+		"POST",
+		"https://test.teapi.io/v1/documents",
+		`{
+			"type":"atreides",
+			"upserts":[
+				{"doc": {"id": 123, "name": "Leto"}, "meta": null},
+				{"doc": {"id": 22, "name": "paul"}, "meta": {"id": 22, "name": "Paul"}}
+			],
+			"deletes": null
+		}`,
+		"1c724a54aba47bedc5ffd848f15ecc67f809f0279232ce997d7a86e1051dd61e")
+}
+
+func (_ DocumentsTests) BulkSendsWithDeletes() {
+	upserts := Documents{
+		Doc(Person(123, "Leto")),
+	}
+	deletes := DocumentIds{DocId(987442)}
+	Expect(n().Documents.Bulk("atreides", upserts, deletes)).To.Equal(200, nil)
+	assertLast(
+		"POST",
+		"https://test.teapi.io/v1/documents",
+		`{
+			"type":"atreides",
+			"upserts":[
+				{"doc": {"id": 123, "name": "Leto"}, "meta": null}
+			],
+			"deletes": [{"id": 987442}]
+		}`,
+		"6a5aa84e625db752fa9782339b95a911e0a7e4cfa04bf232c2033ec7f21da07b")
+}

@@ -23,9 +23,9 @@ Documents can be created, updated or deleted one at a time:
 
 ```go
 type Saiyan struct {
-  Id int `json:"id"`
-  Name string `json:"name"`
-  Power int `json:"power"`
+  Id int       `json:"id"`
+  Name string  `json:"name"`
+  Power int    `json:"power"`
 }
 
 user := &User{Id: 34, Name: "Goku", Power: 9001}
@@ -42,6 +42,20 @@ override := map[string]interface{"power", 49943, "super": true}
 t.Documents.Create("saiyans", teapi.DocMeta(doc, override))
 ```
 `Doc` and `DocMeta` support any type that can be serialized via `encoding/json`.
+
+# Bulk Documnets
+Documents can be inserted, updated and deleted in bulk:
+
+```go
+upserts := teapi.Documents {
+  teapi.Doc(user1), teapi.Doc(user2),
+}
+deletes := teapi.DocumentIds{teapi.DocId(434), teapi.DocId("string_id"),}
+
+t.Documents.Bulk("saiyans", upserts, deletes)
+```
+
+Up to 1000 items can be sent per call.
 
 # Return value
 The return value is an `(int, error)` where the integer represents the status code of the response. A negative status code is possible if the request wasn't possible (such as on a serialization error). It's also possible to get both status code and an error (such as a 401 authorization error).
