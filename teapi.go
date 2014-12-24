@@ -84,7 +84,7 @@ func (t *Teapi) do(method, resource, date string, body io.ReadSeeker) (int, erro
 		return code, err
 	}
 	defer res.Body.Close()
-	if code < 300 {
+	if code < 300 || code == 404 {
 		return code, nil
 	}
 
