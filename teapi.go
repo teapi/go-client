@@ -116,7 +116,6 @@ func (t *Teapi) sign(url, date string, body io.Reader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	hasher := hmac.New(sha256.New, t.secret)
 	hasher.Write([]byte(url))
 	hasher.Write([]byte(date))
