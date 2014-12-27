@@ -4,7 +4,7 @@ This is a node driver for <http://teapi.io>.
 # Installation
 
 ```go
-go get github.com/teapi/teapi
+go get github.com/teapi/go-client
 ```
 
 # Configuration
@@ -12,7 +12,7 @@ Create a teapi instance via `New` and configure with `Configure`:
 
 ```go
 import (
-  "github.com/teapi/teapi"
+  "github.com/teapi/go-client"
 )
 ...
 t := teapi.New(teapi.Configure("m01.teapi.io", "KEY", "SECRET"))
