@@ -3,6 +3,7 @@ package teapi
 
 import (
 	"bytes"
+	"compress/gzip"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -61,19 +62,40 @@ func (t *Teapi) do(method, resource, date string, body io.ReadSeeker) (int, erro
 	}
 
 	path := "/" + Version + "/" + resource
-	sig, err := t.sign(path, date, body)
+	sig, l, err := t.sign(path, date, body)
 	if err != nil {
 		return -2, err
 	}
 
-	req, err := http.NewRequest(method, t.host+path, body)
+	compress := l > 512
+	pr, pw := io.Pipe()
+	defer pr.Close()
+
+	go func() {
+		var target io.WriteCloser = pw
+		var gz io.WriteCloser
+		if compress {
+			gz = gzip.NewWriter(pw)
+			target = gz
+		}
+		body.Seek(0, 0)
+		io.Copy(target, body)
+		if compress {
+			gz.Close()
+		}
+		pw.Close()
+	}()
+
+	req, err := http.NewRequest(method, t.host+path, pr)
 	if err != nil {
 		return -3, err
 	}
 	req.Header.Set("Date", date)
 	req.Header.Set("Authorization", sig)
+	if compress {
+		req.Header.Set("Content-Encoding", "gzip")
+	}
 
-	body.Seek(0, 0)
 	code := -4
 	res, err := Do(t.Client, req)
 
@@ -111,16 +133,17 @@ func (t *Teapi) do(method, resource, date string, body io.ReadSeeker) (int, erro
 	return -7, errors.New(string(rbody))
 }
 
-func (t *Teapi) sign(url, date string, body io.Reader) (string, error) {
+func (t *Teapi) sign(url, date string, body io.Reader) (string, int, error) {
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 	hasher := hmac.New(sha256.New, t.secret)
 	hasher.Write([]byte(url))
 	hasher.Write([]byte(date))
 	hasher.Write(data)
-	return "HMAC-SHA256 Credential=" + t.key + ",Signature=" + hex.EncodeToString(hasher.Sum(nil)), nil
+	sig := "HMAC-SHA256 Credential=" + t.key + ",Signature=" + hex.EncodeToString(hasher.Sum(nil))
+	return sig, len(data), nil
 }
 
 var Now = func() time.Time {

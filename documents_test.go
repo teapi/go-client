@@ -2,6 +2,7 @@ package teapi
 
 import (
 	. "github.com/karlseguin/expect"
+	"strings"
 	"testing"
 )
 
@@ -18,6 +19,15 @@ func (_ DocumentsTests) CreatesADocument() {
 		"https://test.teapi.io/v1/documents",
 		`{"type":"atreides", "doc":{"id":434, "name":"Leto"}}`,
 		"9b8bcb7da2e2b360f7db2be82241b6355d5068a55bc1bd7134887e0d3dc35d84")
+}
+
+func (_ DocumentsTests) GzipsALargeDocument() {
+	Expect(n().Documents.Create("atreides", Doc(Person(434, strings.Repeat("a", 512))))).To.Equal(200, nil)
+	assertLastGzip(
+		"POST",
+		"https://test.teapi.io/v1/documents",
+		`{"type":"atreides", "doc":{"id":434, "name":"`+strings.Repeat("a", 512)+`"}}`,
+		"e894b891d4029b6b28024ae55c86a8268f553f8271bc2c64e6b2a1f699fd2715")
 }
 
 func (_ DocumentsTests) CreatesADocumentWithMeta() {
