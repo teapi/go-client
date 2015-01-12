@@ -4,15 +4,15 @@ This is a node driver for <http://teapi.io>.
 # Installation
 
 ```go
-go get github.com/teapi/teapi
+go get github.com/teapi/go-client
 ```
 
 # Configuration
-Create a teapi instance via `New` and configured with `Configure`:
+Create a teapi instance via `New` and configure with `Configure`:
 
 ```go
 import (
-  "github.com/teapi/teapi"
+  "github.com/teapi/go-client"
 )
 ...
 t := teapi.New(teapi.Configure("m01.teapi.io", "KEY", "SECRET"))
@@ -28,7 +28,7 @@ type Saiyan struct {
   Power int    `json:"power"`
 }
 
-user := &User{Id: 34, Name: "Goku", Power: 9001}
+user := &Saiyan{Id: 34, Name: "Goku", Power: 9001}
 
 t.Documents.Create("saiyans", teapi.Doc(user))
 t.Documents.Update("saiyans", teapi.Doc(user))
@@ -43,7 +43,7 @@ t.Documents.Create("saiyans", teapi.DocMeta(doc, override))
 ```
 `Doc` and `DocMeta` support any type that can be serialized via `encoding/json`.
 
-# Bulk Documnets
+# Bulk Documents
 Documents can be inserted, updated and deleted in bulk:
 
 ```go
