@@ -23,6 +23,7 @@ type Teapi struct {
 	*Configuration
 	Client    *http.Client
 	Documents *documents
+	Lists     *lists
 }
 
 // Create a new teapi instance using the specified configuration
@@ -34,6 +35,7 @@ func New(config *Configuration) *Teapi {
 		Client:        http.DefaultClient,
 	}
 	t.Documents = &documents{t}
+	t.Lists = &lists{t}
 	return t
 }
 
